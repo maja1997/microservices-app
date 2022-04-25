@@ -1,6 +1,7 @@
 package com.microservices.botdetector;
 
 
+import com.microservices.clients.bot_detector.BotCheckResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;

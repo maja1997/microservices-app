@@ -1,15 +1,16 @@
 package com.microservices.user;
 
+import com.microservices.clients.bot_detector.BotCheckResponse;
+import com.microservices.clients.bot_detector.BotDetectorClient;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 @AllArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
-    private final RestTemplate restTemplate;
+    private final BotDetectorClient botDetectorClient;
 
     public void registerUser(UserRegistrationRequest request) {
         User user = User.builder()
@@ -20,11 +21,7 @@ public class UserService {
                 .build();
         userRepository.saveAndFlush(user);
 
-        BotCheckResponse botCheckResponse = restTemplate.getForObject(
-                "http://bot-detector/api/v1/bot-check/{userId}",
-                BotCheckResponse.class,
-                user.getId()
-        );
+        BotCheckResponse botCheckResponse = botDetectorClient.isFraudster(user.getId());
 
         if (botCheckResponse.isBot()) {
             throw new IllegalStateException("User is a bot!");
