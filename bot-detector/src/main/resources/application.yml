@@ -1,11 +1,11 @@
 server:
-  port: 8080
+  port: 8081
 spring:
   application:
-    name: user
+    name: bot-detector
   datasource:
     password: admin
-    url: jdbc:postgresql://localhost:54320/user
+    url: jdbc:postgresql://localhost:54320/bot-detector
     username: user
   jpa:
     hibernate:
