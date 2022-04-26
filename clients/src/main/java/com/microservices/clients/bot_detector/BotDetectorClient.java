@@ -5,8 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(value = "bot-detector")
-public
-interface BotDetectorClient {
+public interface BotDetectorClient {
 
     @GetMapping(path = "api/v1/bot-check/{userId}")
     BotCheckResponse isFraudster(

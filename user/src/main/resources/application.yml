@@ -24,3 +24,12 @@ eureka:
       defaultZone: http://localhost:8761/eureka
     fetch-registry: true
     register-with-eureka: true
+
+kafka:
+  config:
+    bootstrap:
+      server: localhost:9092
+    group:
+      id: group-1
+    topic:
+      id: kafkaTopic
