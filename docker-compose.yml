@@ -37,6 +37,8 @@ services:
     container_name: zipkin
     ports:
       - "9411:9411"
+    networks:
+      - spring_net
 
   zookeeper:
     image: bitnami/zookeeper:latest
@@ -50,6 +52,8 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
       ZOOKEEPER_SYNC_LIMIT: 2
+    networks:
+      - spring_net
 
   kafka:
     image: bitnami/kafka:latest
@@ -64,17 +68,93 @@ services:
       - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ADVERTISED_HOST_NAME: localhost
+      KAFKA_ADVERTISED_HOST_NAME: kafka
       KAFKA_CFG_LISTENERS=PLAINTEXT: //:9092
-      KAFKA_CFG_ADVERTISED_LISTENERS: CLIENT://localhost:9092,EXTERNAL://localhost:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: CLIENT://kafka:9092,EXTERNAL://kafka:9093
       KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_CFG_LISTENERS: CLIENT://:9092,EXTERNAL://:9093
       KAFKA_INTER_BROKER_LISTENER_NAME: CLIENT
       ALLOW_PLAINTEXT_LISTENER: 'yes'
+    networks:
+      - spring_net
+
+  eureka-server:
+    image: majami97/eureka-server:latest
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - spring_net
+    depends_on:
+      - zipkin
+
+  apigw:
+    image: majami97/apigw:latest
+    container_name: apigw
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - spring_net
+    depends_on:
+      - zipkin
+      - eureka-server
+
+  user:
+    image: majami97/user:latest
+    container_name: user
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - spring_net
+      - postgres_net
+    depends_on:
+      - zipkin
+      - eureka-server
+      - postgres
+      - kafka
+
+  bot-detector:
+    image: majami97/bot-detector:latest
+    container_name: bot-detector
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - spring_net
+      - postgres_net
+    depends_on:
+      - zipkin
+      - eureka-server
+      - postgres
+
+  notification:
+    image: majami97/notification:latest
+    container_name: notification
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - spring_net
+      - postgres_net
+    depends_on:
+      - zipkin
+      - eureka-server
+      - postgres
+      - kafka
 
 networks:
   postgres_net:
+    driver: bridge
+  spring_net:
     driver: bridge
 
 volumes:
